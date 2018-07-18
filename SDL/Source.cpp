@@ -2,20 +2,19 @@
 #include <fstream>
 #include <SDL.h>
 #include <map>
+#include <vector> //for random shuffle only
+#include <algorithm> // for random shuffle only
+#include <ctime> // for random shuffle only
 
-// Ported to SDL from https://www.youtube.com/user/FamTrinli chess tutorial in SFML
+// Ported by @valt to SDL from https://www.youtube.com/user/FamTrinli puzzle tutorial in SFML
 
 //figures coordinates
 std::map<int, SDL_Rect> Figures;
 const int FigureSize = 64;
 const int PuzzleSize = 4;
-const int EmptyField = 16;
-
-int puzzle[PuzzleSize][PuzzleSize] =
-{1,2,3,4,
- 5,6,7,8,
- 9,10,11,12,
-13,14,15,EmptyField};
+const int EmptyField = 16; // puzzle is from 1..15
+// Puzzle board
+int puzzle[PuzzleSize][PuzzleSize];
 
 std::map<const char, SDL_Texture *> Textures;
 std::map<const char, std::string> Bitmaps;
@@ -38,13 +37,10 @@ int main(int argc, char ** argv) {
 	}
 	// Load bitmaps
 	Bitmaps[0] = "img/15.bmp";
-	//Bitmaps[1] = "img/figures.bmp";
 	// Create textures from bitmaps
 	for (auto bitmap : Bitmaps) {
 		SDL_Surface * bitmapSurface = SDL_LoadBMP(bitmap.second.c_str());
-		//transparent color -> red
-		//SDL_SetColorKey(bitmapSurface, SDL_TRUE, SDL_MapRGB(bitmapSurface->format, 255, 0, 0));
-		// create texture with modified color (transparent)
+		// create texture 
 		Textures[bitmap.first] = SDL_CreateTextureFromSurface(renderer, bitmapSurface);
 		if (Textures[bitmap.first] == NULL) {
 			std::cout << bitmap.second.c_str() <<" SDL_CreateTextureFromSurface error\n";
@@ -53,13 +49,17 @@ int main(int argc, char ** argv) {
 			std::cout << bitmap.second.c_str() << " SDL_CreateTextureFromSurface OK\n";
 		SDL_FreeSurface(bitmapSurface);
 	}
-	// Coordinates for figures from bitmap
+	// Random shuffle
+	srand(time(0));
+	std::vector<int> Items = { 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 };
+	std::random_shuffle(Items.begin(), Items.end());
+	// Load random puzzle, coordinates for figures from bitmap
 	int Index = 1;
 	for (int i = 0; i < PuzzleSize; i++)
 		for (int j = 0; j < PuzzleSize; j++) {
+			puzzle[i][j] = Items[Index-1];
 			Figures[Index++] = SDL_Rect{ j*FigureSize, i*FigureSize, FigureSize, FigureSize };
 		}
-
 	while (1) {
 		SDL_Event e;
 		if (SDL_PollEvent(&e)) {
